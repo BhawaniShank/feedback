@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import bg from './assets/bg.jpg'
-const questions = [
-  "How are you?",
-  "How was your experience?",
-  "Any suggestions for improvement?",
-];
+import bg from "./assets/bg.jpg";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import QUESTIONS from "./Questions";
+
+const questions = QUESTIONS;
 
 function FeedbackForm() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -15,10 +15,12 @@ function FeedbackForm() {
     formState: { errors },
     setValue,
     getValues,
+    trigger,
   } = useForm();
 
-  const nextQuestion = () => {
-    if (getValues(`answer${currentQuestion}`)) {
+  const nextQuestion = async () => {
+    const isValid = await trigger(`answer${currentQuestion}`); // Validate current field
+    if (isValid) {
       setCurrentQuestion((prev) => {
         const next = prev + 1;
         setValue(`answer${next}`, ""); // Clear input for next question
@@ -35,32 +37,101 @@ function FeedbackForm() {
       },
       body: JSON.stringify(data),
     });
+    console.log(data);
     
+
     if (response.ok) {
-      alert("Thank you for your feedback!");
+      toast.success("Thank you for your feedback!");
     } else {
-      alert("Failed to send feedback. Please try again.");
+      toast.error("Failed to send feedback. Please try again.");
     }
   };
 
   return (
     <div
-    className="flex flex-col items-center justify-center min-h-screen bg-gray-white bg-cover bg-center bg-no-repeat"
-    style={{ backgroundImage: `url(${bg})` }}
-  >
-      <div className=" p-8 rounded-lg w-full md:w-[70%] lg:w-[50%] ">
-        <h2 className="text-2xl md:text-5xl font-semibold mb-4">{questions[currentQuestion]}</h2>
+      className="flex flex-col items-center justify-center min-h-screen bg-gray-white bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: `url(${bg})` }}
+    >
+      <div className="p-8 rounded-lg w-full md:w-[70%] lg:w-[50%]">
+        <h2 className="text-2xl md:text-5xl font-semibold mb-4">
+          {questions[currentQuestion].question}
+        </h2>
         <form onSubmit={handleSubmit(submitFeedback)}>
-          <input
-            type="text"
-            {...register(`answer${currentQuestion}`, { required: "This field is required" })}
-            className="px-4 py-2 border-b-4 w-full md:w-[70%] lg:w-[50%] border-black outline-none"
-            placeholder="Input the answer"
-          />
-          {errors[`answer${currentQuestion}`] && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors[`answer${currentQuestion}`].message}
-            </p>
+          {["checkbox", "radio"].includes(questions[currentQuestion].type) ? (
+            <div>
+              {questions[currentQuestion].options.map((option, index) => (
+                <div key={index}>
+                  <input
+                    id={`option-${currentQuestion}-${index}`}
+                    type={questions[currentQuestion].type}
+                    {...register(`answer${currentQuestion}`, {
+                      required: questions[currentQuestion].validation?.required,
+                    })}
+                    className="mr-2"
+                    value={option}
+                  />
+                  <label htmlFor={`option-${currentQuestion}-${index}`}>
+                    {option}
+                  </label>
+                </div>
+              ))}
+              {errors[`answer${currentQuestion}`] && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors[`answer${currentQuestion}`].message}
+                </p>
+              )}
+            </div>
+          ) : questions[currentQuestion].type === "select" ? (
+            <div>
+              <select
+                {...register(`answer${currentQuestion}`, {
+                  required: questions[currentQuestion].validation?.required,
+                })}
+                className="px-4 py-2 border-b-4 w-full md:w-[70%] lg:w-[50%] border-black outline-none"
+              >
+                <option value="">Select an option</option>
+                {questions[currentQuestion].options.map((option, index) => (
+                  <option key={index} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              {errors[`answer${currentQuestion}`] && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors[`answer${currentQuestion}`].message}
+                </p>
+              )}
+            </div>
+          ) : 
+          
+          questions[currentQuestion].type == 'textarea' ? 
+          (
+            <div>
+              <textarea 
+              rows={5}
+              {...register(`answer${currentQuestion}`,
+                {
+                  required: questions[currentQuestion].validation?.required,
+                }
+              )}
+              ></textarea>
+            </div>
+          )
+          :
+          (
+            <div>
+              <input
+                type={questions[currentQuestion].type}
+                {...register(`answer${currentQuestion}`, questions[currentQuestion].validation)}
+                className="px-4 py-2 border-b-4 w-full md:w-[70%] lg:w-[50%] border-black outline-none"
+                placeholder="Input the answer"
+              />
+              {errors[`answer${currentQuestion}`] && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors[`answer${currentQuestion}`].message}
+                </p>
+              )}
+            </div>
           )}
 
           <div className="mt-6 flex justify-end">
@@ -87,4 +158,4 @@ function FeedbackForm() {
   );
 }
 
-export default FeedbackForm
+export default FeedbackForm;
