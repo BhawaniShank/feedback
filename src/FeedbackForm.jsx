@@ -114,7 +114,14 @@ function FeedbackForm() {
                   required: questions[currentQuestion].validation?.required,
                 }
               )}
+              className="px-4 py-2 border-b-4 border rounded-t-sm w-full md:w-[70%] lg:w-[50%] border-black outline-none"
+                placeholder="Input the answer"
               ></textarea>
+              {errors[`answer${currentQuestion}`] && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors[`answer${currentQuestion}`].message}
+                </p>
+              )}
             </div>
           )
           :
