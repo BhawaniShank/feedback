@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-
+import bg from './assets/bg.jpg'
 const questions = [
   "How are you?",
   "How was your experience?",
@@ -44,8 +44,11 @@ function FeedbackForm() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-white">
-      <div className="bg-white p-8 rounded-lg w-full md:w-[70%] lg:w-[50%] ">
+    <div
+    className="flex flex-col items-center justify-center min-h-screen bg-gray-white bg-cover bg-center bg-no-repeat"
+    style={{ backgroundImage: `url(${bg})` }}
+  >
+      <div className=" p-8 rounded-lg w-full md:w-[70%] lg:w-[50%] ">
         <h2 className="text-2xl md:text-5xl font-semibold mb-4">{questions[currentQuestion]}</h2>
         <form onSubmit={handleSubmit(submitFeedback)}>
           <input
